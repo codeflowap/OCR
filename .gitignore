@@ -1,0 +1,89 @@
+# ================================
+# Dependencies
+# ================================
+node_modules/
+.pnp/
+.pnp.js
+
+# ================================
+# Build & Compiled Output
+# ================================
+dist/
+build/
+*.tsbuildinfo
+*.js.map
+
+# ================================
+# Data Directories (keep folders via .gitkeep)
+# ================================
+data/images/*
+!data/images/.gitkeep
+data/input/*
+!data/input/.gitkeep
+data/output/*
+!data/output/.gitkeep
+
+# ================================
+# Environment & Secrets
+# ================================
+.env
+.env.local
+.env.*.local
+
+# ================================
+# Claude / AI Tool Files
+# ================================
+.claude/
+claude/
+
+# ================================
+# Tesseract / OCR Data
+# ================================
+*.traineddata
+
+# ================================
+# OS Generated Files
+# ================================
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ================================
+# IDE & Editor Config
+# ================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ================================
+# Logs & Debug
+# ================================
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ================================
+# Test & Coverage
+# ================================
+coverage/
+.nyc_output/
+
+# ================================
+# Miscellaneous
+# ================================
+*.tgz
+*.pid
+*.seed
+*.pid.lock
+.cache/
+tmp/
+temp/

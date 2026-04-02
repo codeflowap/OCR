@@ -1,0 +1,38 @@
+{
+  "name": "ocr-tool",
+  "version": "1.0.0",
+  "description": "PDF and image OCR to Markdown converter with local and OpenAI engines",
+  "type": "module",
+  "scripts": {
+    "ocr:images": "tsx src/index.ts --input data/images",
+    "ocr:pdf": "tsx src/index.ts --input data/input",
+    "ocr:images:openai": "tsx src/index.ts --input data/images --engine openai",
+    "ocr:pdf:openai": "tsx src/index.ts --input data/input --engine openai",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "canvas": "^3.2.3",
+    "dotenv": "^17.4.0",
+    "openai": "^6.33.0",
+    "pdfjs-dist": "^5.6.205",
+    "sharp": "^0.34.5",
+    "tesseract.js": "^7.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "canvas",
+      "esbuild",
+      "sharp",
+      "tesseract.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
