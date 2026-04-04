@@ -34,6 +34,12 @@ pnpm tsx src/index.ts --input data/images
 # Extract text from PDFs using local OCR
 pnpm tsx src/index.ts --input data/input
 
+# Extract only pages 12-16 from PDFs
+pnpm tsx src/index.ts --input data/input --page 12-16
+
+# Extract a range of images by filename (all files in between are inferred)
+pnpm tsx src/index.ts --input data/images --range scan-4.png scan-9.png
+
 # Extract text from images using OpenAI GPT-4o vision
 pnpm tsx src/index.ts --input data/images --engine openai
 
@@ -56,10 +62,35 @@ pnpm run ocr:pdf:openai      # OpenAI on data/input/
 |------|---------|-------------|
 | `--input <folder>` | (required) | Path to folder containing PDFs or images |
 | `--engine <local\|openai>` | `local` | Extraction engine to use |
+| `--page <start-end>` | all pages | Process only specific PDF pages, e.g. `12-16` |
+| `--range <start> <end>` | all images | Process a range of image files by name (see below) |
 | `--batch-size <n>` | `5` | Number of images per OpenAI API call |
 | `--parallel <n>` | `3` | Number of parallel OpenAI API calls |
 | `--retries <n>` | `1` | Number of retry attempts for failed pages |
 | `-h, --help` | | Show help message |
+
+### Page and range selection
+
+**`--page` (PDF mode):** Process only a subset of pages from each PDF. Pages are 1-indexed and inclusive:
+
+```bash
+# Process pages 12 through 16 only
+pnpm tsx src/index.ts --input data/input --page 12-16
+```
+
+**`--range` (image mode):** Specify a start and end filename, and all files in between are automatically inferred from the naming pattern. The two files must share the same prefix and extension — only the numeric part changes:
+
+```bash
+# If your folder contains: report-3.png, report-4.png, report-5.png, report-6.png, report-7.png
+# This processes report-4.png through report-7.png:
+pnpm tsx src/index.ts --input data/images --range report-4.png report-7.png
+
+# Works with any prefix and extension:
+pnpm tsx src/index.ts --input data/images --range ggg-4.jpg ggg-7.jpg
+pnpm tsx src/index.ts --input data/images --range scan_001.tiff scan_005.tiff
+```
+
+Zero-padding is preserved: `--range img-004.png img-012.png` generates `img-004.png` through `img-012.png`. Files in the range that don't exist in the folder are skipped with a warning.
 
 ### OpenAI batching example
 

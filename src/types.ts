@@ -33,6 +33,8 @@ export interface ProcessingConfig {
   batchSize: number;
   parallel: number;
   retries: number;
+  pageRange?: { start: number; end: number };
+  imageRange?: { startFile: string; endFile: string };
 }
 
 export interface ImageEntry {

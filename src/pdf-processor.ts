@@ -9,21 +9,28 @@ export async function processPdf(
   config: ProcessingConfig
 ): Promise<{ pages: PageContent[]; retriesUsed: number; pagesRecovered: number }> {
   // Dynamic imports for ESM compatibility
-  const pdfjs = await import("pdfjs-dist");
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const { createCanvas } = await import("canvas");
 
   const data = new Uint8Array(await readFile(pdfPath));
   const pdf = await pdfjs.getDocument({ data }).promise;
   const totalPages = pdf.numPages;
 
-  console.log(`  Processing ${totalPages} pages...`);
+  const startPage = config.pageRange ? Math.min(config.pageRange.start, totalPages) : 1;
+  const endPage = config.pageRange ? Math.min(config.pageRange.end, totalPages) : totalPages;
+
+  if (config.pageRange) {
+    console.log(`  Processing pages ${startPage}-${endPage} of ${totalPages} total...`);
+  } else {
+    console.log(`  Processing ${totalPages} pages...`);
+  }
 
   const pages: PageContent[] = [];
   const scannedBuffers: { buffer: Buffer; pageNumber: number }[] = [];
   let retriesUsed = 0;
   let pagesRecovered = 0;
 
-  for (let i = 1; i <= totalPages; i++) {
+  for (let i = startPage; i <= endPage; i++) {
     const page = await pdf.getPage(i);
 
     // Try native text extraction first
@@ -49,23 +56,44 @@ export async function processPdf(
       const canvas = createCanvas(viewport.width, viewport.height);
       const context = canvas.getContext("2d");
 
-      await page.render({
-        canvas: canvas as any,
-        canvasContext: context as any,
-        viewport,
-      }).promise;
+      try {
+        await page.render({
+          canvas: canvas as any,
+          canvasContext: context as any,
+          viewport,
+        }).promise;
 
-      const imageBuffer = canvas.toBuffer("image/png");
+        const imageBuffer = canvas.toBuffer("image/png");
 
-      if (config.engine === "local") {
-        const startTime = Date.now();
-        const result = await ocrImageBuffer(imageBuffer, i);
-        const timeMs = Date.now() - startTime;
-        logPageOcr(i, totalPages, `page-${i}.png`, result.confidence, timeMs);
-        pages.push(result);
-      } else {
-        // Collect for batch processing with OpenAI
-        scannedBuffers.push({ buffer: imageBuffer, pageNumber: i });
+        if (config.engine === "local") {
+          const startTime = Date.now();
+          const result = await ocrImageBuffer(imageBuffer, i);
+          const timeMs = Date.now() - startTime;
+          logPageOcr(i, totalPages, `page-${i}.png`, result.confidence, timeMs);
+          pages.push(result);
+        } else {
+          // Collect for batch processing with OpenAI
+          scannedBuffers.push({ buffer: imageBuffer, pageNumber: i });
+        }
+      } catch (renderErr) {
+        // pdfjs render can fail on pages with embedded images in Node.js
+        // Fall back to whatever native text we have, even if below threshold
+        if (nativeText.trim().length > 0) {
+          console.log(`  [${i}/${totalPages}] Render failed, using partial native text (${nativeText.trim().length} chars)`);
+          pages.push({
+            pageNumber: i,
+            text: nativeText,
+            source: "native",
+          });
+        } else {
+          console.log(`  [${i}/${totalPages}] Render failed, no text available: ${renderErr}`);
+          pages.push({
+            pageNumber: i,
+            text: "",
+            source: "ocr" as const,
+            error: `Render failed: ${renderErr}`,
+          });
+        }
       }
     }
 
