@@ -8,6 +8,7 @@
     "ocr:pdf": "tsx src/index.ts --input data/input",
     "ocr:images:openai": "tsx src/index.ts --input data/images --engine openai",
     "ocr:pdf:openai": "tsx src/index.ts --input data/input --engine openai",
+    "summarize": "tsx src/summarize.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },

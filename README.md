@@ -129,13 +129,59 @@ All extracted pages are combined into a **single Markdown file** per document in
 [extracted text here]
 ```
 
+## Summarize Service
+
+After extracting text with the OCR tool, you can summarize the output `.md` files using an LLM. This is a separate command that reads from `data/output/`, sends each file to the LLM, and saves summaries to `data/output/summarized/`.
+
+### Basic usage
+
+```bash
+# Summarize all extracted markdown files (reads OPENAI_API_KEY from .env)
+pnpm tsx src/summarize.ts
+
+# Run 4 files in parallel
+pnpm tsx src/summarize.ts --batch 4
+
+# Use a different model
+pnpm tsx src/summarize.ts --batch 4 --model gpt-4o
+
+# Summarize files from a custom folder with retries
+pnpm tsx src/summarize.ts --input data/output --batch 4 --retries 2
+```
+
+### npm script shortcut
+
+```bash
+pnpm run summarize                  # summarize data/output/*.md
+```
+
+### Summarize flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--input <folder>` | `data/output` | Source folder containing `.md` files |
+| `--batch <n>` | `1` | Number of parallel LLM calls |
+| `--retries <n>` | `1` | Retry attempts for failed files |
+| `--model <model>` | `gpt-5.4` | OpenAI model to use |
+| `-h, --help` | | Show help message |
+
+### How it works
+
+- Reads all `.md` files from the input folder (skipping any existing `*-summary.md` files)
+- Sends each file to the LLM with a summarization prompt
+- With `--batch 4`, up to 4 files are processed in parallel
+- Each summary is saved **immediately** when it completes — if file #3 fails, files #1, #2, and #4 are still saved
+- Output goes to `data/output/summarized/<filename>-summary.md`
+- Failed files are retried up to `--retries` times before being reported
+
 ## Folder structure
 
 ```
 data/
-  input/     # Drop PDF files here
-  images/    # Drop page images here (JPG, PNG, TIFF, BMP, WEBP)
-  output/    # Generated Markdown files appear here
+  input/              # Drop PDF files here
+  images/             # Drop page images here (JPG, PNG, TIFF, BMP, WEBP)
+  output/             # Generated Markdown files appear here
+    summarized/       # LLM summaries of the extracted text
 ```
 
 ## How the engines compare
@@ -153,7 +199,8 @@ data/
 
 ```
 src/
-  index.ts              # CLI entry point, arg parsing, orchestration
+  index.ts              # OCR CLI entry point, arg parsing, orchestration
+  summarize.ts          # Summarize CLI — sends extracted text to LLM
   types.ts              # TypeScript interfaces
   logger.ts             # Structured terminal logging with progress
   image-preprocessor.ts # Sharp-based image prep for local OCR
