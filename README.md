@@ -21,6 +21,16 @@ cp .env.example .env
 # Then edit .env and set OPENAI_API_KEY=sk-...
 ```
 
+### Python Virtual Environment
+
+```bash
+# Create a virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate
+```
+
 ## Usage
 
 The tool takes a single required flag `--input <folder>` pointing to a folder of PDFs or images. It auto-detects the content type.
